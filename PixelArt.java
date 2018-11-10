@@ -17,7 +17,9 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
@@ -47,7 +49,7 @@ public class PixelArt extends JFrame {
 
         JTextField textField = new JTextField("#");
 
-        JButton print = new JButton("Print");
+        JMenuItem print = new JMenuItem("Print");
         print.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -58,17 +60,19 @@ public class PixelArt extends JFrame {
         comboBoxItems.add(currentColor);
         final DefaultComboBoxModel<Color> model = new DefaultComboBoxModel<>(comboBoxItems);
 
-        JButton add = new JButton("Add");
+        JMenuItem add = new JMenuItem("Add");
 
         add.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                model.addElement(Color.decode(textField.getText()));
-                textField.setText("#");
+                try{
+                    model.addElement(Color.decode(textField.getText()));
+                    textField.setText("#");
+                } catch(Exception ex){}
             }
         });
 
-        JButton save = new JButton("Save");
+        JMenuItem save = new JMenuItem("Save");
         save.addActionListener(new ActionListener(){
 
             @Override
@@ -84,11 +88,25 @@ public class PixelArt extends JFrame {
                 currentColor = (Color) cb.getSelectedItem();
             }
         });
-        menuBar.add(print);
+
+        JMenuItem importColors = new JMenuItem("Import");
+        JMenuItem clear = new JMenuItem("Clear");
+        clear.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clear();
+            }
+        });
+        JMenu menu = new JMenu("Actions");
+        menu.add(print);
+        menu.add(save);
+        menu.add(importColors);
+        menu.add(clear);
+
+        menuBar.add(menu);
         menuBar.add(dropDown);
         menuBar.add(textField);
         menuBar.add(add);
-        menuBar.add(save);
 
         frame.setJMenuBar(menuBar);
 
@@ -159,9 +177,9 @@ public class PixelArt extends JFrame {
             }
         }
 
-        File file = new File("myImg.jpeg");
+        File file = new File("myImg.png");
         try {
-            ImageIO.write(image, "jpeg", file);
+            ImageIO.write(image, "png", file);
         } catch (IOException e) {
             e.printStackTrace();
 		}
@@ -180,5 +198,17 @@ public class PixelArt extends JFrame {
                     + bs.substring(bs.length() - 2) + " ");
         }
         System.out.println();
+    }
+
+    public static void importColors(){
+
+    }
+
+    public static void clear(){
+        for (int i = 0; i < buttons.length; i++){
+            for (JButton button: buttons[i]){
+                button.setBackground(Color.white);
+            }
+        }
     }
 }
