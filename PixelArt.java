@@ -1,3 +1,4 @@
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -10,9 +11,10 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Vector;
-
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -23,6 +25,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
 
 public class PixelArt extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -38,12 +41,18 @@ public class PixelArt extends JFrame {
 
     public PixelArt() {
         menuBar = new JMenuBar();
+        menuBar.setSize(screenWidth, menuBar.getHeight());
         frame = new JFrame();
-        frame.setSize(screenWidth, screenHeight + menuBar.getHeight());
+        frame.setSize(screenWidth, screenHeight);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel panel = new JPanel(new GridLayout(height, width, 0, 0));
         panel.setSize(screenWidth, screenHeight);
+
+        Border padding = BorderFactory.createEmptyBorder(0, 0, 0, 0);
+
+        panel.setBorder(padding);
+        menuBar.setBorder(padding);
 
         buttons = new JButton[height][width];
 
@@ -60,6 +69,15 @@ public class PixelArt extends JFrame {
         comboBoxItems.add(currentColor);
         final DefaultComboBoxModel<Color> model = new DefaultComboBoxModel<>(comboBoxItems);
 
+        dropDown = new JComboBox<>(model);
+        dropDown.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JComboBox<Color> cb = (JComboBox<Color>) e.getSource();
+                currentColor = (Color) cb.getSelectedItem();
+            }
+        });
+
         JMenuItem add = new JMenuItem("Add");
 
         add.addActionListener(new ActionListener() {
@@ -68,6 +86,8 @@ public class PixelArt extends JFrame {
                 try{
                     model.addElement(Color.decode(textField.getText()));
                     textField.setText("#");
+                    dropDown.setSelectedIndex(dropDown.getItemCount() - 1);
+                    currentColor = dropDown.getItemAt(dropDown.getItemCount() - 1);
                 } catch(Exception ex){}
             }
         });
@@ -80,16 +100,16 @@ public class PixelArt extends JFrame {
                 save();
             }
         });
-        dropDown = new JComboBox<>(model);
-        dropDown.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JComboBox<Color> cb = (JComboBox<Color>) e.getSource();
-                currentColor = (Color) cb.getSelectedItem();
-            }
-        });
+
 
         JMenuItem importColors = new JMenuItem("Import");
+        importColors.addActionListener(new ActionListener(){
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                importColors("");
+            }
+        });
         JMenuItem clear = new JMenuItem("Clear");
         clear.addActionListener(new ActionListener(){
             @Override
@@ -157,7 +177,7 @@ public class PixelArt extends JFrame {
             buttons[i / width][i % width] = button;
             panel.add(button, i);
         }
-        frame.add(panel);
+        frame.getContentPane().add(panel, BorderLayout.CENTER);
         frame.setVisible(true);
         frame.setResizable(false);
     }
@@ -200,8 +220,9 @@ public class PixelArt extends JFrame {
         System.out.println();
     }
 
-    public static void importColors(){
-
+    public static void importColors(String s){
+        String [] lines = s.split("\n");
+        System.out.println(Arrays.toString(lines));
     }
 
     public static void clear(){
