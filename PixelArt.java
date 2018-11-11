@@ -1,4 +1,3 @@
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -14,7 +13,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Vector;
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -22,10 +20,8 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
 
 public class PixelArt extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -40,99 +36,19 @@ public class PixelArt extends JFrame {
     static Color currentColor = new Color(28, 25, 22);
 
     public PixelArt() {
-        menuBar = new JMenuBar();
-        menuBar.setSize(screenWidth, menuBar.getHeight());
+        createMenuBar();
+        
         frame = new JFrame();
+        frame.setJMenuBar(menuBar);
         frame.setSize(screenWidth, screenHeight);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        JPanel panel = new JPanel(new GridLayout(height, width, 0, 0));
-        panel.setSize(screenWidth, screenHeight);
-
-        Border padding = BorderFactory.createEmptyBorder(0, 0, 0, 0);
-
-        panel.setBorder(padding);
-        menuBar.setBorder(padding);
-
         buttons = new JButton[height][width];
-
-        JTextField textField = new JTextField("#");
-
-        JMenuItem print = new JMenuItem("Print");
-        print.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                print();
-            }
-        });
-        Vector<Color> comboBoxItems = new Vector<Color>();
-        comboBoxItems.add(currentColor);
-        final DefaultComboBoxModel<Color> model = new DefaultComboBoxModel<>(comboBoxItems);
-
-        dropDown = new JComboBox<>(model);
-        dropDown.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JComboBox<Color> cb = (JComboBox<Color>) e.getSource();
-                currentColor = (Color) cb.getSelectedItem();
-            }
-        });
-
-        JMenuItem add = new JMenuItem("Add");
-
-        add.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                try{
-                    model.addElement(Color.decode(textField.getText()));
-                    textField.setText("#");
-                    dropDown.setSelectedIndex(dropDown.getItemCount() - 1);
-                    currentColor = dropDown.getItemAt(dropDown.getItemCount() - 1);
-                } catch(Exception ex){}
-            }
-        });
-
-        JMenuItem save = new JMenuItem("Save");
-        save.addActionListener(new ActionListener(){
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                save();
-            }
-        });
-
-
-        JMenuItem importColors = new JMenuItem("Import");
-        importColors.addActionListener(new ActionListener(){
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                importColors("");
-            }
-        });
-        JMenuItem clear = new JMenuItem("Clear");
-        clear.addActionListener(new ActionListener(){
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                clear();
-            }
-        });
-        JMenu menu = new JMenu("Actions");
-        menu.add(print);
-        menu.add(save);
-        menu.add(importColors);
-        menu.add(clear);
-
-        menuBar.add(menu);
-        menuBar.add(dropDown);
-        menuBar.add(textField);
-        menuBar.add(add);
-
-        frame.setJMenuBar(menuBar);
 
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         frame.setLocation(dim.width / 2 - frame.getSize().width / 2, dim.height / 2 - frame.getSize().height / 2);
 
+        frame.setLayout(new GridLayout(height, width));
         for (int i = 0; i < height * width; i++) {
             JButton button = new JButton();
             button.setOpaque(true);
@@ -175,9 +91,8 @@ public class PixelArt extends JFrame {
             });
             button.setBorderPainted(false);
             buttons[i / width][i % width] = button;
-            panel.add(button, i);
+            frame.add(button, i);
         }
-        frame.getContentPane().add(panel, BorderLayout.CENTER);
         frame.setVisible(true);
         frame.setResizable(false);
     }
@@ -231,5 +146,80 @@ public class PixelArt extends JFrame {
                 button.setBackground(Color.white);
             }
         }
+    }
+
+    public static void createMenuBar(){
+        menuBar = new JMenuBar();
+        JTextField textField = new JTextField("#");
+
+        JMenuItem print = new JMenuItem("Print");
+        print.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                print();
+            }
+        });
+        Vector<Color> comboBoxItems = new Vector<Color>();
+        comboBoxItems.add(currentColor);
+        final DefaultComboBoxModel<Color> model = new DefaultComboBoxModel<>(comboBoxItems);
+
+        dropDown = new JComboBox<>(model);
+        dropDown.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JComboBox<Color> cb = (JComboBox<Color>) e.getSource();
+                currentColor = (Color) cb.getSelectedItem();
+            }
+        });
+
+        JMenuItem add = new JMenuItem("Add");
+
+        add.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                try {
+                    model.addElement(Color.decode(textField.getText()));
+                    textField.setText("#");
+                    dropDown.setSelectedIndex(dropDown.getItemCount() - 1);
+                    currentColor = dropDown.getItemAt(dropDown.getItemCount() - 1);
+                } catch (Exception ex) {
+                }
+            }
+        });
+
+        JMenuItem save = new JMenuItem("Save");
+        save.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                save();
+            }
+        });
+
+        JMenuItem importColors = new JMenuItem("Import");
+        importColors.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                importColors("");
+            }
+        });
+        JMenuItem clear = new JMenuItem("Clear");
+        clear.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clear();
+            }
+        });
+        JMenu menu = new JMenu("Actions");
+        menu.add(print);
+        menu.add(save);
+        menu.add(importColors);
+        menu.add(clear);
+
+        menuBar.add(menu);
+        menuBar.add(dropDown);
+        menuBar.add(textField);
+        menuBar.add(add);
     }
 }
