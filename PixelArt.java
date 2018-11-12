@@ -11,11 +11,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Vector;
 import javax.imageio.ImageIO;
 import javax.swing.DefaultComboBoxModel;
@@ -40,6 +38,7 @@ public class PixelArt extends JFrame {
     static JComboBox<Color> dropDown;
     static Color[] colors;
     static Color currentColor = new Color(28, 25, 22);
+    static Vector<Color> comboBoxItems = new Vector<Color>();
 
     public PixelArt() {
         createMenuBar();
@@ -170,7 +169,11 @@ public class PixelArt extends JFrame {
                 int multiplier = image.getWidth() > width ? image.getWidth() / width : 1;
                 for (int y = 0; y < buttons.length; y++) {
                     for (int x = 0; x < buttons[y].length; x++) {
-                        buttons[y][x].setBackground(new Color(image.getRGB(x * multiplier, y * multiplier)));
+                        Color c = new Color(image.getRGB(x * multiplier, y * multiplier));
+                        if (!comboBoxItems.contains(c)) {
+                            comboBoxItems.add(c);
+                        }
+                        buttons[y][x].setBackground(c);
                     }
                 }
             }
@@ -180,10 +183,15 @@ public class PixelArt extends JFrame {
                 System.out.println("Incompatible ratios!");
                 return;
             }
+            comboBoxItems.clear();
             int multiplier = image.getWidth() > width ? image.getWidth() / width : 1;
             for (int y = 0; y < buttons.length; y++) {
                 for (int x = 0; x < buttons[y].length; x++) {
-                    buttons[y][x].setBackground(new Color(image.getRGB(x * multiplier, y * multiplier)));
+                    Color c = new Color(image.getRGB(x * multiplier, y * multiplier));
+                    if (!comboBoxItems.contains(c)){
+                        comboBoxItems.add(c);
+                    }
+                    buttons[y][x].setBackground(c);
                 }
             }
         }
@@ -210,7 +218,7 @@ public class PixelArt extends JFrame {
                 print();
             }
         });
-        Vector<Color> comboBoxItems = new Vector<Color>();
+
         comboBoxItems.add(currentColor);
         final DefaultComboBoxModel<Color> model = new DefaultComboBoxModel<>(comboBoxItems);
 
@@ -267,6 +275,7 @@ public class PixelArt extends JFrame {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     try {
                         importColors(new URL(field.getText()));
+                        field.setText("");
                     } catch (MalformedURLException e1) {
                         e1.printStackTrace();
                     } catch (IOException e1) {
