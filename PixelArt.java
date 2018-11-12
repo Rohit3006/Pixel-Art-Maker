@@ -31,8 +31,7 @@ import javax.swing.filechooser.FileSystemView;
 
 // TODO: fix sizing
 
-public class PixelArt extends JFrame {
-    private static final long serialVersionUID = 1L;
+public class PixelArt{
     static int height = 50, width = 50, size = 1000 / height, screenHeight = height * size, screenWidth = width * size;
     static JButton[][] buttons;
     static boolean pressed = false;
@@ -48,15 +47,15 @@ public class PixelArt extends JFrame {
 
         frame = new JFrame();
         frame.setJMenuBar(menuBar);
+        frame.setLayout(new GridLayout(height, width));
         frame.setSize(screenWidth, screenHeight);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         buttons = new JButton[height][width];
 
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-        frame.setLocation(dim.width / 2 - frame.getSize().width / 2, dim.height / 2 - frame.getSize().height / 2);
+        frame.setLocation(dim.width / 2 - frame.getSize().width / 2, dim.height / 2 - frame.getSize().height / 2 + 50);
 
-        frame.setLayout(new GridLayout(height, width));
         for (int i = 0; i < height * width; i++) {
             JButton button = new JButton();
             button.setOpaque(true);
@@ -101,6 +100,7 @@ public class PixelArt extends JFrame {
             buttons[i / width][i % width] = button;
             frame.add(button, i);
         }
+
         frame.setVisible(true);
         frame.setResizable(false);
     }
@@ -169,6 +169,7 @@ public class PixelArt extends JFrame {
                     System.out.println("Incompatible ratios!");
                     return;
                 }
+                comboBoxItems.clear();
                 int multiplier = image.getWidth() > width ? image.getWidth() / width : 1;
                 for (int y = 0; y < buttons.length; y++) {
                     for (int x = 0; x < buttons[y].length; x++) {
@@ -249,8 +250,8 @@ public class PixelArt extends JFrame {
         //             boolean isSelected, boolean cellHasFocus) {
         //                 Component c = dropDown.getComponent(index);
         //                 c.setBackground(dropDown.getItemAt(index));
-		// 		return c;
-		// 	}
+        //      return c;
+        //  }
         // });
         JMenuItem add = new JMenuItem("Add");
 
