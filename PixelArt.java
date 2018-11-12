@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
@@ -27,6 +28,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileSystemView;
+
+// TODO: fix sizing
 
 public class PixelArt extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -196,7 +199,8 @@ public class PixelArt extends JFrame {
             }
         }
 
-
+        currentColor = comboBoxItems.get(0);
+        dropDown.setSelectedIndex(0);
     }
 
     public static void clear() {
@@ -219,6 +223,14 @@ public class PixelArt extends JFrame {
             }
         });
 
+        JMenuItem export = new JMenuItem("Export");
+        export.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                exportColors();
+            }
+        });
+
         comboBoxItems.add(currentColor);
         final DefaultComboBoxModel<Color> model = new DefaultComboBoxModel<>(comboBoxItems);
 
@@ -231,6 +243,15 @@ public class PixelArt extends JFrame {
             }
         });
 
+        // dropDown.setRenderer(new ListCellRenderer<Color>() {
+        //     @Override
+        //     public Component getListCellRendererComponent(JList<? extends Color> list, Color value, int index,
+        //             boolean isSelected, boolean cellHasFocus) {
+        //                 Component c = dropDown.getComponent(index);
+        //                 c.setBackground(dropDown.getItemAt(index));
+		// 		return c;
+		// 	}
+        // });
         JMenuItem add = new JMenuItem("Add");
 
         add.addActionListener(new ActionListener() {
@@ -307,6 +328,7 @@ public class PixelArt extends JFrame {
         });
         JMenu menu = new JMenu("Actions");
         menu.add(print);
+        menu.add(export);
         menu.add(save);
         menu.add(importColors);
         menu.add(clear);
@@ -315,5 +337,18 @@ public class PixelArt extends JFrame {
         menuBar.add(dropDown);
         menuBar.add(textField);
         menuBar.add(add);
+    }
+
+    public static void exportColors(){
+        for (Color c: comboBoxItems){
+            int r = c.getRed();
+            int b = c.getBlue();
+            int g = c.getGreen();
+            String rs = ("0" + Integer.toHexString(r));
+            String bs = ("0" + Integer.toHexString(b));
+            String gs = ("0" + Integer.toHexString(g));
+            System.out.println("#" + rs.substring(rs.length() - 2) + gs.substring(gs.length() - 2)
+                    + bs.substring(bs.length() - 2));
+        }
     }
 }
