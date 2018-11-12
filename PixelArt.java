@@ -20,11 +20,13 @@ import javax.imageio.ImageIO;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileSystemView;
@@ -214,7 +216,31 @@ public class PixelArt{
 
     public static void createMenuBar() {
         menuBar = new JMenuBar();
+        comboBoxItems.add(currentColor);
+        final DefaultComboBoxModel<Color> model = new DefaultComboBoxModel<>(comboBoxItems);
         JTextField textField = new JTextField("#");
+        textField.addKeyListener(new KeyListener(){
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER){
+                    model.addElement(Color.decode(textField.getText()));
+                    textField.setText("#");
+                    dropDown.setSelectedIndex(dropDown.getItemCount() - 1);
+                    currentColor = dropDown.getItemAt(dropDown.getItemCount() - 1);
+                }
+            }
+        });
 
         JMenuItem print = new JMenuItem("Print");
         print.addActionListener(new ActionListener() {
@@ -232,39 +258,12 @@ public class PixelArt{
             }
         });
 
-        comboBoxItems.add(currentColor);
-        final DefaultComboBoxModel<Color> model = new DefaultComboBoxModel<>(comboBoxItems);
-
         dropDown = new JComboBox<>(model);
         dropDown.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JComboBox<Color> cb = (JComboBox<Color>) e.getSource();
                 currentColor = (Color) cb.getSelectedItem();
-            }
-        });
-
-        // dropDown.setRenderer(new ListCellRenderer<Color>() {
-        //     @Override
-        //     public Component getListCellRendererComponent(JList<? extends Color> list, Color value, int index,
-        //             boolean isSelected, boolean cellHasFocus) {
-        //                 Component c = dropDown.getComponent(index);
-        //                 c.setBackground(dropDown.getItemAt(index));
-        //      return c;
-        //  }
-        // });
-        JMenuItem add = new JMenuItem("Add");
-
-        add.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                try {
-                    model.addElement(Color.decode(textField.getText()));
-                    textField.setText("#");
-                    dropDown.setSelectedIndex(dropDown.getItemCount() - 1);
-                    currentColor = dropDown.getItemAt(dropDown.getItemCount() - 1);
-                } catch (Exception ex) {
-                }
             }
         });
 
@@ -279,32 +278,18 @@ public class PixelArt{
 
         JMenu importColors = new JMenu("Import");
         JMenuItem fileItem = new JMenuItem("File");
-        JTextField field = new JTextField();
-        field.addKeyListener(new KeyListener() {
-
+        JMenuItem url = new JMenuItem("URL");
+        url.addActionListener(new ActionListener(){
             @Override
-            public void keyTyped(KeyEvent e) {
-
-            }
-
-            @Override
-            public void keyReleased(KeyEvent e) {
-
-            }
-
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    try {
-                        importColors(new URL(field.getText()));
-                        field.setText("");
-                    } catch (MalformedURLException e1) {
-                        e1.printStackTrace();
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    }
-                    finally{
-                    }
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane optionPane = new JOptionPane();
+                String url = optionPane.showInputDialog("Enter image address:");
+                try {
+                    importColors(new URL(url));
+                } catch (MalformedURLException e1) {
+                    e1.printStackTrace();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
                 }
             }
         });
@@ -319,7 +304,7 @@ public class PixelArt{
             }
         });
         importColors.add(fileItem);
-        importColors.add(field);
+        importColors.add(url);
         JMenuItem clear = new JMenuItem("Clear");
         clear.addActionListener(new ActionListener() {
             @Override
@@ -337,10 +322,10 @@ public class PixelArt{
         menuBar.add(menu);
         menuBar.add(dropDown);
         menuBar.add(textField);
-        menuBar.add(add);
     }
 
     public static void exportColors(){
+        System.out.print("[");
         for (Color c: comboBoxItems){
             int r = c.getRed();
             int b = c.getBlue();
@@ -348,8 +333,9 @@ public class PixelArt{
             String rs = ("0" + Integer.toHexString(r));
             String bs = ("0" + Integer.toHexString(b));
             String gs = ("0" + Integer.toHexString(g));
-            System.out.println("#" + rs.substring(rs.length() - 2) + gs.substring(gs.length() - 2)
-                    + bs.substring(bs.length() - 2));
+            System.out.print("#" + rs.substring(rs.length() - 2) + gs.substring(gs.length() - 2)
+                    + bs.substring(bs.length() - 2) + (comboBoxItems.indexOf(c) != comboBoxItems.size() - 1 ? ", " : ""));
         }
+        System.out.println("]");
     }
 }
