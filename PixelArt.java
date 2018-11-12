@@ -9,24 +9,27 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Vector;
 import javax.imageio.ImageIO;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileSystemView;
 
 public class PixelArt extends JFrame {
     private static final long serialVersionUID = 1L;
-    static int size = 20;
-    static int height = 50, width = 50, screenHeight = height * size, screenWidth = width * size;
+    static int height = 50, width = 50, size = 1000 / height, screenHeight = height * size, screenWidth = width * size;
     static JButton[][] buttons;
     static boolean pressed = false;
     static JMenuBar menuBar;
@@ -37,7 +40,7 @@ public class PixelArt extends JFrame {
 
     public PixelArt() {
         createMenuBar();
-        
+
         frame = new JFrame();
         frame.setJMenuBar(menuBar);
         frame.setSize(screenWidth, screenHeight);
@@ -101,11 +104,11 @@ public class PixelArt extends JFrame {
         new PixelArt();
     }
 
-    public static void save(){
+    public static void save() {
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics = image.createGraphics();
-        for (int i = 0; i < buttons.length; i++){
-            for (int j = 0; j < buttons[i].length; j++){
+        for (int i = 0; i < buttons.length; i++) {
+            for (int j = 0; j < buttons[i].length; j++) {
                 JButton button = buttons[i][j];
                 graphics.setColor(button.getBackground());
                 graphics.drawRect(j, i, 1, 1);
@@ -117,7 +120,7 @@ public class PixelArt extends JFrame {
             ImageIO.write(image, "png", file);
         } catch (IOException e) {
             e.printStackTrace();
-		}
+        }
     }
 
     public static void print() {
@@ -135,20 +138,48 @@ public class PixelArt extends JFrame {
         System.out.println();
     }
 
-    public static void importColors(String s){
-        String [] lines = s.split("\n");
-        System.out.println(Arrays.toString(lines));
+    public static void importColors(URL url) throws IOException {
+        if (url == null) {
+            JFileChooser j = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+            j.setFileFilter(new javax.swing.filechooser.FileFilter() {
+                @Override
+                public String getDescription() {
+                    return "Image Files";
+                }
+
+                @Override
+                public boolean accept(File f) {
+                    return f.getName().endsWith(".png") || f.getName().endsWith(".jpg");
+                }
+            });
+            int r = j.showOpenDialog(null);
+            if (r == JFileChooser.APPROVE_OPTION) {
+                File file = j.getSelectedFile();
+                BufferedImage image = ImageIO.read(file);
+
+                if (width / height != image.getWidth() / image.getHeight()) {
+                    System.out.println("Incompatible ratios!");
+                    return;
+                }
+                int multiplier = image.getWidth() > width ? image.getWidth() / width : 1;
+                for (int y = 0; y < buttons.length; y++) {
+                    for (int x = 0; x < buttons[y].length; x++) {
+                        buttons[y][x].setBackground(new Color(image.getRGB(x * multiplier, y * multiplier)));
+                    }
+                }
+            }
+        }
     }
 
-    public static void clear(){
-        for (int i = 0; i < buttons.length; i++){
-            for (JButton button: buttons[i]){
+    public static void clear() {
+        for (int i = 0; i < buttons.length; i++) {
+            for (JButton button : buttons[i]) {
                 button.setBackground(Color.white);
             }
         }
     }
 
-    public static void createMenuBar(){
+    public static void createMenuBar() {
         menuBar = new JMenuBar();
         JTextField textField = new JTextField("#");
 
@@ -196,14 +227,21 @@ public class PixelArt extends JFrame {
             }
         });
 
-        JMenuItem importColors = new JMenuItem("Import");
-        importColors.addActionListener(new ActionListener() {
-
+        JMenu importColors = new JMenu("Import");
+        JMenuItem fileItem = new JMenuItem("File");
+        //JTextField field = new JTextField();
+        fileItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                importColors("");
+                try {
+                    importColors(null);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
         });
+        importColors.add(fileItem);
+        //importColors.add(field);
         JMenuItem clear = new JMenuItem("Clear");
         clear.addActionListener(new ActionListener() {
             @Override
