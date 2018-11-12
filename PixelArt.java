@@ -5,12 +5,15 @@ import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Vector;
@@ -139,6 +142,8 @@ public class PixelArt extends JFrame {
     }
 
     public static void importColors(URL url) throws IOException {
+        File file;
+
         if (url == null) {
             JFileChooser j = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
             j.setFileFilter(new javax.swing.filechooser.FileFilter() {
@@ -152,10 +157,11 @@ public class PixelArt extends JFrame {
                     return f.getName().endsWith(".png") || f.getName().endsWith(".jpg");
                 }
             });
+            BufferedImage image;
             int r = j.showOpenDialog(null);
             if (r == JFileChooser.APPROVE_OPTION) {
-                File file = j.getSelectedFile();
-                BufferedImage image = ImageIO.read(file);
+                file = j.getSelectedFile();
+                image = ImageIO.read(file);
 
                 if (width / height != image.getWidth() / image.getHeight()) {
                     System.out.println("Incompatible ratios!");
@@ -168,7 +174,21 @@ public class PixelArt extends JFrame {
                     }
                 }
             }
+        } else{
+            BufferedImage image = ImageIO.read(url);
+            if (width / height != image.getWidth() / image.getHeight()) {
+                System.out.println("Incompatible ratios!");
+                return;
+            }
+            int multiplier = image.getWidth() > width ? image.getWidth() / width : 1;
+            for (int y = 0; y < buttons.length; y++) {
+                for (int x = 0; x < buttons[y].length; x++) {
+                    buttons[y][x].setBackground(new Color(image.getRGB(x * multiplier, y * multiplier)));
+                }
+            }
         }
+
+
     }
 
     public static void clear() {
@@ -229,7 +249,34 @@ public class PixelArt extends JFrame {
 
         JMenu importColors = new JMenu("Import");
         JMenuItem fileItem = new JMenuItem("File");
-        //JTextField field = new JTextField();
+        JTextField field = new JTextField();
+        field.addKeyListener(new KeyListener() {
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    try {
+                        importColors(new URL(field.getText()));
+                    } catch (MalformedURLException e1) {
+                        e1.printStackTrace();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                    finally{
+                    }
+                }
+            }
+        });
         fileItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -241,7 +288,7 @@ public class PixelArt extends JFrame {
             }
         });
         importColors.add(fileItem);
-        //importColors.add(field);
+        importColors.add(field);
         JMenuItem clear = new JMenuItem("Clear");
         clear.addActionListener(new ActionListener() {
             @Override
