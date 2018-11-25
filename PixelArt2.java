@@ -1,10 +1,6 @@
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridLayout;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,9 +17,7 @@ import java.net.URL;
 import java.util.Vector;
 import javax.imageio.ImageIO;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -31,14 +25,13 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileSystemView;
 
 public class PixelArt2{
     static JMenuBar menuBar;
     static JFrame frame;
     static JComboBox<Color> dropDown;
-    static Color[] colors;
+    static Color[][] colors;
     static Color currentColor = new Color(28, 25, 22);
     static Vector<Color> comboBoxItems = new Vector<Color>();
     static int width, height, pixelsX, pixelsY;
@@ -48,6 +41,7 @@ public class PixelArt2{
         height = 800;
         pixelsX = 200;
         pixelsY = 200;
+        colors = new Color[pixelsY][pixelsX];
         frame = new JFrame();
         frame.setJMenuBar(menuBar);
         frame.setSize(width, height);
@@ -222,10 +216,10 @@ public class PixelArt2{
     }
 
     public static void save() {
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        BufferedImage image = new BufferedImage(pixelsX, pixelsY, BufferedImage.TYPE_INT_RGB);
         for (int x = 0; x < pixelsX; x++) {
             for (int y = 0; y < pixelsY; y++) {
-                image.setRGB(x, y, Color.BLACK.getRGB());
+                image.setRGB(x, y, colors[y][x].getRGB());
             }
         }
 
@@ -238,23 +232,23 @@ public class PixelArt2{
     }
 
     public static void print() {
-        for (int i = 0; i < height * width; i++) {
-            // JButton button = buttons[i / width][i % width];
-            // int r = button.getBackground().getRed();
-            // int b = button.getBackground().getBlue();
-            // int g = button.getBackground().getGreen();
-            // String rs = ("0" + Integer.toHexString(r));
-            // String bs = ("0" + Integer.toHexString(b));
-            // String gs = ("0" + Integer.toHexString(g));
-            // System.out.print(rs.substring(rs.length() - 2) + gs.substring(gs.length() - 2)
-            //         + bs.substring(bs.length() - 2) + " ");
+        for (int i = 0; i < pixelsX * pixelsY; i++) {
+            Color c = colors[i / pixelsY][i % pixelsX];
+            int r = c.getRed();
+            int b = c.getBlue();
+            int g = c.getGreen();
+            String rs = ("0" + Integer.toHexString(r));
+            String bs = ("0" + Integer.toHexString(b));
+            String gs = ("0" + Integer.toHexString(g));
+            System.out.print(rs.substring(rs.length() - 2) + gs.substring(gs.length() - 2)
+                    + bs.substring(bs.length() - 2) + " ");
         }
         System.out.println();
     }
 
     public static void importColors(URL url) throws IOException {
         File file;
-
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         if (url == null) {
             JFileChooser j = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
             j.setFileFilter(new javax.swing.filechooser.FileFilter() {
@@ -268,41 +262,29 @@ public class PixelArt2{
                     return f.getName().endsWith(".png") || f.getName().endsWith(".jpg");
                 }
             });
-            BufferedImage image;
+
             int r = j.showOpenDialog(null);
             if (r == JFileChooser.APPROVE_OPTION) {
                 file = j.getSelectedFile();
                 image = ImageIO.read(file);
-                comboBoxItems.clear();
-                int multiplierX = image.getWidth() > pixelsX ? image.getWidth() / pixelsX : 1;
-                int multiplierY = image.getHeight() > pixelsY ? image.getHeight() / pixelsY : 1;
-                int pixelWidth = width / pixelsX;
-                int pixelHeight = height / pixelsY;
-                for (int y = 0; y < pixelsY; y++) {
-                    for (int x = 0; x < pixelsX; x++) {
-                        Color c = new Color(image.getRGB(x * multiplierX, y * multiplierY));
-                        if (!comboBoxItems.contains(c)) {
-                            comboBoxItems.add(c);
-                        }
-                        paintPixel(pixelWidth * x, pixelHeight * y, c);
-                    }
-                }
+
             }
         } else {
-            BufferedImage image = ImageIO.read(url);
-            comboBoxItems.clear();
-            int multiplierX = image.getWidth() > pixelsX ? image.getWidth() / pixelsX : 1;
-            int multiplierY = image.getHeight() > pixelsY ? image.getHeight() / pixelsY : 1;
-            int pixelWidth = width / pixelsX;
-            int pixelHeight = height / pixelsY;
-            for (int y = 0; y < pixelsY; y++) {
-                for (int x = 0; x < pixelsX; x++) {
-                    Color c = new Color(image.getRGB(x * multiplierX, y * multiplierY));
-                    if (!comboBoxItems.contains(c)) {
-                        comboBoxItems.add(c);
-                    }
-                    paintPixel(pixelWidth * x, pixelHeight * y, c);
+            image = ImageIO.read(url);
+        }
+        comboBoxItems.clear();
+        int multiplierX = image.getWidth() > pixelsX ? image.getWidth() / pixelsX : 1;
+        int multiplierY = image.getHeight() > pixelsY ? image.getHeight() / pixelsY : 1;
+        int pixelWidth = width / pixelsX;
+        int pixelHeight = height / pixelsY;
+        for (int y = 0; y < pixelsY; y++) {
+            for (int x = 0; x < pixelsX; x++) {
+                Color c = new Color(image.getRGB(x * multiplierX, y * multiplierY));
+                if (!comboBoxItems.contains(c)) {
+                    comboBoxItems.add(c);
                 }
+                colors[y][x] = c;
+                paintPixel(pixelWidth * x, pixelHeight * y, c);
             }
         }
 
