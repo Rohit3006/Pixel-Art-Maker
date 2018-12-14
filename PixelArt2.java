@@ -24,7 +24,9 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileSystemView;
 
 public class PixelArt2{
@@ -32,28 +34,42 @@ public class PixelArt2{
     static JFrame frame;
     static JComboBox<Color> dropDown;
     static Color[][] colors;
-    static Color currentColor = new Color(28, 25, 22);
+    static Color currentColor = Color.black;
     static Vector<Color> comboBoxItems = new Vector<Color>();
     static int width, height, pixelsX, pixelsY;
+    static int pixelWidth, pixelHeight;
+    static JPanel panel;
     public PixelArt2(){
         createMenuBar();
         width = 800;
         height = 800;
-        pixelsX = 200;
-        pixelsY = 200;
+        pixelsX = 800;
+        pixelsY = 800;
+        pixelWidth = width / pixelsX;
+        pixelHeight = height / pixelsY;
         colors = new Color[pixelsY][pixelsX];
         frame = new JFrame();
+        panel = new JPanel();
+        panel.setSize(width, height);
         frame.setJMenuBar(menuBar);
         frame.setSize(width, height);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.addMouseListener(new MouseListener(){
+        panel.addMouseListener(new MouseListener(){
             @Override
             public void mouseReleased(MouseEvent e) {
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
-                paintPixel(e.getX(), e.getY(), currentColor);
+                int x = (int) (e.getX() / pixelWidth) * pixelWidth;
+                int y = (int) (e.getY() / pixelHeight) * pixelHeight;
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    paintPixel(x, y, currentColor);
+                    colors[(int) (e.getY() / pixelHeight)][(int) (e.getX() / pixelWidth)] = currentColor;
+                } else if (SwingUtilities.isRightMouseButton(e)) {
+                    paintPixel(x, y, Color.white);
+                    colors[(int) (e.getY() / pixelHeight)][(int) (e.getX() / pixelWidth)] = Color.white;
+                }
             }
 
             @Override
@@ -69,7 +85,7 @@ public class PixelArt2{
             public void mouseClicked(MouseEvent e) {
             }
         });
-        frame.addMouseMotionListener(new MouseMotionListener(){
+        panel.addMouseMotionListener(new MouseMotionListener(){
 
             @Override
             public void mouseMoved(MouseEvent e) {
@@ -78,13 +94,23 @@ public class PixelArt2{
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                paintPixel((int)Math.floor(e.getX()), (int)Math.floor(e.getY()), currentColor);
+                int x = (int) (e.getX() / pixelWidth) * pixelWidth;
+                int y = (int) (e.getY() / pixelHeight) * pixelHeight;
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    paintPixel(x, y, currentColor);
+                    colors[(int) (e.getY() / pixelHeight)][(int) (e.getX() / pixelWidth)] = currentColor;
+                } else if (SwingUtilities.isRightMouseButton(e)) {
+                    paintPixel(x, y, Color.white);
+                    colors[(int) (e.getY() / pixelHeight)][(int) (e.getX() / pixelWidth)] = Color.white;
+                }
             }
         });
 
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         frame.setLocation(dim.width / 2 - frame.getSize().width / 2, dim.height / 2 - frame.getSize().height / 2 + 50);
 
+        frame.add(panel);
+        frame.setSize(width, height + 50);
         frame.setResizable(false);
         frame.setVisible(true);
     }
@@ -93,14 +119,8 @@ public class PixelArt2{
         new PixelArt2();
     }
 
-    public void paint(Graphics g){
-
-    }
-
     public static void paintPixel(int x, int y, Color c){
-        Graphics g = frame.getGraphics();
-        int pixelWidth = width / pixelsX;
-        int pixelHeight = height / pixelsY;
+        Graphics g = panel.getGraphics();
         g.setColor(c);
         g.fillRect(x, y, pixelWidth, pixelHeight);
     }
@@ -138,14 +158,6 @@ public class PixelArt2{
             @Override
             public void actionPerformed(ActionEvent e) {
                 print();
-            }
-        });
-
-        JMenuItem export = new JMenuItem("Export");
-        export.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                exportColors();
             }
         });
 
@@ -205,7 +217,6 @@ public class PixelArt2{
         });
         JMenu menu = new JMenu("Actions");
         menu.add(print);
-        menu.add(export);
         menu.add(save);
         menu.add(importColors);
         menu.add(clear);
@@ -267,29 +278,24 @@ public class PixelArt2{
             if (r == JFileChooser.APPROVE_OPTION) {
                 file = j.getSelectedFile();
                 image = ImageIO.read(file);
-
+            } else{
+                return;
             }
         } else {
             image = ImageIO.read(url);
         }
-        comboBoxItems.clear();
-        int multiplierX = image.getWidth() > pixelsX ? image.getWidth() / pixelsX : 1;
-        int multiplierY = image.getHeight() > pixelsY ? image.getHeight() / pixelsY : 1;
+
+        double multiplierX = (double) image.getWidth() / pixelsX;
+        double multiplierY = (double)image.getHeight() / pixelsY;
         int pixelWidth = width / pixelsX;
         int pixelHeight = height / pixelsY;
         for (int y = 0; y < pixelsY; y++) {
             for (int x = 0; x < pixelsX; x++) {
-                Color c = new Color(image.getRGB(x * multiplierX, y * multiplierY));
-                if (!comboBoxItems.contains(c)) {
-                    comboBoxItems.add(c);
-                }
+                Color c = new Color(image.getRGB((int)(x * multiplierX), (int)(y * multiplierY)));
                 colors[y][x] = c;
                 paintPixel(pixelWidth * x, pixelHeight * y, c);
             }
         }
-
-        currentColor = comboBoxItems.get(0);
-        dropDown.setSelectedIndex(0);
     }
 
     public static void clear() {
@@ -300,21 +306,5 @@ public class PixelArt2{
                 paintPixel(x * pixelWidth, y * pixelHeight, Color.white);
             }
         }
-    }
-
-    public static void exportColors() {
-        System.out.print("[");
-        for (Color c : comboBoxItems) {
-            int r = c.getRed();
-            int b = c.getBlue();
-            int g = c.getGreen();
-            String rs = ("0" + Integer.toHexString(r));
-            String bs = ("0" + Integer.toHexString(b));
-            String gs = ("0" + Integer.toHexString(g));
-            System.out.print(
-                    "#" + rs.substring(rs.length() - 2) + gs.substring(gs.length() - 2) + bs.substring(bs.length() - 2)
-                            + (comboBoxItems.indexOf(c) != comboBoxItems.size() - 1 ? ", " : ""));
-        }
-        System.out.println("]");
     }
 }
