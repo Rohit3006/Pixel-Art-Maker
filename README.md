@@ -6,4 +6,4 @@
 - Add colors in text field
 - Convert large images to smaller sizes (ex. 400x400 to 200x200)
 
-![PixelArt Application](PixelArt.png)
+![PixelArt Application](Image.png)
